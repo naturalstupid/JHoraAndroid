@@ -7,7 +7,7 @@ Android App based on [JHora Python Package](https://github.com/naturalstupid/PyJ
 
 Installation Requirements
 -------------------------
-**You can directly download the Android APK file from the `bin` folder and install it in your android devices.**
+**You can directly download the Android APK file from the `apks` folder and install it in your android devices.**
 
 If you want to use this app in Windows, then you will have to install python and the below dependent libraries. Then run the `main.py`
 
@@ -64,3 +64,4 @@ See LICENSE file.
 Contact
 -------
 https://github.com/naturalstupid/
+
