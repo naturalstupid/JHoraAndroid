@@ -67,32 +67,49 @@ class DropdownSelector(BoxLayout):
     selected_value = StringProperty()
 
     def __init__(self, label_text, values, initial_value, on_select_callback, **kwargs):
-        super().__init__(orientation='horizontal', spacing=10, **kwargs)
+        size_hint_y_val = kwargs.pop('size_hint_y', None) #V0.7.9.2
+        super().__init__(orientation='horizontal', size_hint_y=size_hint_y_val, #V0.7.9.2
+                         spacing=_DROPDOWN_ITEM_SPACING, **kwargs)
         self.values = values
         self.selected_value = initial_value
         self.on_select_callback = on_select_callback
-        self.dropdown_open = False  # Track dropdown state
-        # Create dropdown and populate it
-        self.dropdown = DropDown()
+        self.dropdown_open = False
+
+        # --- Set the max_height based on a percentage of the initial window height ---
+        self.dropdown = DropDown(
+            max_height=Window.height * _DROPDOWN_WINDOW_SIZE_FACTOR,
+            # This is the fix for Android scrolling detection: #V0.7.9.2
+            scroll_type=['bars', 'content'], 
+            effect_cls=DampedScrollEffect
+            )
+        self.dropdown.container.size_hint_y = None #V0.7.9.2
+        self.dropdown.container.bind(
+            minimum_height=self.dropdown.container.setter('height')
+        )               #V0.7.9.2
         self.dropdown.bind(on_dismiss=self.on_dropdown_dismiss)
+        # --- Bind to the window resize event for dynamic resizing ---
+        Window.bind(on_resize=self._update_max_height)
+
         for value in self.values:
-            btn = Button(text=value, size_hint_y=None, height=44)
-            btn.bind(on_release=lambda btn: self.select_value(btn.text))
+            btn = Button(text=value, size_hint_y=None, height=_SPINNER_ITEM_HEIGHT)
+            btn.bind(on_release=lambda instance, btn_text=value: self.select_value(btn_text)) #V0.7.9.2
             self.dropdown.add_widget(btn)
 
-        # Left button (acts like a label, but opens dropdown)
-        self.label_button = Button(text=label_text, size_hint_x=0.5)
+        self.label_button = Button(text=label_text, size_hint_x=0.5, color=_BUTTON_WIDGET_COLOR)
         self.label_button.bind(on_release=self.open_dropdown)
 
-        # Right button (displays selected value, does nothing on click)
-        self.dropdown_button = Button(text=self.selected_value, size_hint_x=0.5)
-        #self.dropdown_button.disabled = True  # Prevent interaction
+        self.dropdown_button = Button(text=self.selected_value, size_hint_x=0.5, color=_BUTTON_WIDGET_COLOR)
         self.dropdown_button.background_normal = ''
         self.dropdown_button.background_color = (0.9, 0.9, 0.9, 1)
-        self.dropdown_button.bind(on_release=lambda *args: None)  # Do nothing on click
+        self.dropdown_button.bind(on_release=self.open_dropdown)
+
         self.add_widget(self.label_button)
         self.add_widget(self.dropdown_button)
-
+    
+    # Method to update the dropdown's max_height dynamically
+    def _update_max_height(self, window, width, height):
+        self.dropdown.max_height = height * _DROPDOWN_WINDOW_SIZE_FACTOR
+        
     def open_dropdown(self, *args):
         if _DEBUG_: print("JHora: Dropdown Left Button pressed")
         if self.dropdown_open:
@@ -122,8 +139,8 @@ class DropdownSelector(BoxLayout):
         self.values = new_values
         self.dropdown.clear_widgets()
         for value in self.values:
-            btn = Button(text=value, size_hint_y=None, height=44)
-            btn.bind(on_release=lambda btn: self.select_value(btn.text))
+            btn = Button(text=value, size_hint_y=None, height=_SPINNER_ITEM_HEIGHT)
+            btn.bind(on_release=lambda instance, btn_text=value: self.select_value(btn_text)) #V0.7.9.2
             self.dropdown.add_widget(btn)
         if default_value:
             self.selected_value = default_value
@@ -144,7 +161,8 @@ class SettingsTab(BoxLayout):
             label_text="Change Language",
             values=_available_languages,
             initial_value=self.app.config["language"],
-            on_select_callback=self.on_language_change
+            on_select_callback=self.on_language_change,
+            size_hint_y = None
         )
         layout.add_widget(self.lang_selector)
 
@@ -154,7 +172,8 @@ class SettingsTab(BoxLayout):
             label_text="Change chart_type",
             values=_available_chart_types,
             initial_value=self.app.config["chart_type"],
-            on_select_callback=self.on_chart_type_change
+            on_select_callback=self.on_chart_type_change,
+            size_hint_y = None
         )
         layout.add_widget(self.chart_type_selector)
 
@@ -164,7 +183,8 @@ class SettingsTab(BoxLayout):
             label_text="Ayanamsa Option",
             values=_ayanamsa_modes,
             initial_value=self.app.config["ayanamsa_mode"],
-            on_select_callback=self.on_ayanamsa_change
+            on_select_callback=self.on_ayanamsa_change,
+            size_hint_y = None
         )
         layout.add_widget(self.ayanamsa_selector)
 
@@ -174,7 +194,8 @@ class SettingsTab(BoxLayout):
             label_text="Divisional Chart",
             values=self.chart_names,
             initial_value=self.chart_names[0],
-            on_select_callback=self.on_chart_selected
+            on_select_callback=self.on_chart_selected,
+            size_hint_y = None
         )
         layout.add_widget(self.chart_selector)
 
@@ -185,7 +206,8 @@ class SettingsTab(BoxLayout):
             label_text="Calculation Method",
             values=methods,
             initial_value=default_method,
-            on_select_callback=self.on_method_selected
+            on_select_callback=self.on_method_selected,
+            size_hint_y = None
         )
         layout.add_widget(self.method_selector)
 
@@ -193,7 +215,8 @@ class SettingsTab(BoxLayout):
         self.splash_toggle = DropdownSelector(
             label_text="Show Splash Screen", values = ["yes","no"],
             initial_value = self.app.config["show_splash"].lower(),
-            on_select_callback=self.on_splash_toggle
+            on_select_callback=self.on_splash_toggle,
+            size_hint_y = None
         )
         layout.add_widget(self.splash_toggle)
 
