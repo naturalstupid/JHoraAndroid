@@ -1,6 +1,3 @@
 *.pyc
-*.apk
 .project
 .pydevproject
-*.apk
-apks/jhora-android-V0.7.9.3.apk
